@@ -1,0 +1,8 @@
+-- Coordenadas aleatórias
+https://mail.haskell.org/pipermail/haskell-cafe/2006-December/020005.html   -- No caso, esse programa gera 50.
+
+-- https://www.cs.kent.ac.uk/people/staff/sjt/craft2e/Games/                -- Minesweeper Code - Exemplo 1
+
+-- https://github.com/luispauloml/campo-minado                              -- Campo Minado - Exemplo 2
+
+-- https://github.com/diegopaiva1/haskell-minesweeper/blob/master/doc.pdf   -- Campo Minado (doc) - Exemplo 3
