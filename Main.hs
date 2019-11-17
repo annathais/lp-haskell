@@ -18,7 +18,7 @@ main = do
   putStrLn "--            --> Bem vindo ao Campo Minado <--             --"
   putStrLn "--------------------------------------------------------------\n"
   g        <- getStdGen
-  campo <- return $ fazMatriz largura altura Fechado
+  campo    <- return $ fazMatriz largura altura Fechado
   minas    <- return $ gerarJogo largura altura (largura * altura `div` 10) g
   jogar campo minas >>= mostrarMinas
 
@@ -28,15 +28,16 @@ jogar e w = do
   mostrarMinas e
   putStrLn "Escolha uma coordenada (x y):" 
   jogada <- getLine
-  newC <- return $ analisar w (parseInput jogada) e
-  case bombaVisivel newC of
-      True  -> return newC
-      False -> jogar newC w
+  novoC  <- return $ analisar w (analisaEntrada jogada) e
+  case bombaVisivel novoC of
+      True  -> return novoC
+      False -> jogar novoC w
+
 
 analisar :: Minas -> Coordenada -> Campo -> Campo
 analisar w p@(x, y) e = case e !! x !! y of
-                         Fechado -> atualizarCampo w p e
-                         _          -> e
+                            Fechado -> atualizarCampo w p e
+                            _       -> e
 
 atualizarCampo :: Minas -> Coordenada -> Campo -> Campo
 atualizarCampo w p@(x, y) e =
@@ -44,22 +45,22 @@ atualizarCampo w p@(x, y) e =
       Peso 0 -> foldr (analisar w) novoCampo $ emTorno largura altura p
       _      -> novoCampo
     where
-      estado       = (w !! x !! y)
+      estado    = (w !! x !! y)
       novoCampo = trocarIndiceMatriz p e estado
 
 
 bombaVisivel :: Campo -> Bool
 bombaVisivel [] = False
 bombaVisivel (xs:xss)
-              | temBomba xs = True
+              | temBomba xs     = True
               | otherwise       = bombaVisivel xss
               where temBomba xs = not $ all naoTemBomba xs
-                    naoTemBomba Bomba    = False
+                    naoTemBomba Bomba   = False
                     naoTemBomba _       = True
                                       
 
-parseInput :: String -> Coordenada
-parseInput line = listToPair $ map read $ words line
+analisaEntrada :: String -> Coordenada
+analisaEntrada line = listToPair $ map read $ words line
     where listToPair (x:y:_) = (y, x)
 
 
@@ -70,9 +71,9 @@ gerarJogo w h n g = [zipWith combinar ms cs | (ms, cs) <- zip bombaMap mapaPeso]
                      mapaPeso = geraMapaPeso w h bombas
                      bombaMap = gerarMinas w h n bombas
                      combinar :: (Estado a) -> a -> Estado a
-                     combinar Bomba _       = Bomba
-                     combinar Fechado _ = Fechado
-                     combinar (Peso _) x   = Peso x
+                     combinar Bomba _    = Bomba
+                     combinar Fechado _  = Fechado
+                     combinar (Peso _) x = Peso x
                                             
 
 gerarCoordenadas :: RandomGen g => Int -> Int -> Int -> g -> [Coordenada]
@@ -85,15 +86,15 @@ gerarCoordenadas w h n g = zip xs ys
 gerarMinas :: Int -> Int -> Int -> [Coordenada] -> Minas
 gerarMinas w h n bombas = foldr localBomba mina bombas
     where
-      mina              = fazMatriz w h (Peso 0) -- Initial mina has no bombas
+      mina              = fazMatriz w h (Peso 0)
       localBomba p mina = trocarIndiceMatriz p mina Bomba
 
 
 geraMapaPeso :: Int -> Int -> [Coordenada] -> MapaPeso
 geraMapaPeso w h bombas = foldr succCoordenada mapaPeso emTornoCoordenadas
     where
-      emTornoCoordenadas          = concat $ map (emTorno w h) bombas
-      mapaPeso                    = replicate w $ replicate h 0
+      emTornoCoordenadas               = concat $ map (emTorno w h) bombas
+      mapaPeso                         = replicate w $ replicate h 0
       succCoordenada p@(x, y) mapaPeso = trocarIndiceMatriz p mapaPeso
                                    $ succ (mapaPeso !! x !! y)
                                      
@@ -123,18 +124,22 @@ mostrarCentralizado w x = (replicate espacoEsq ' ') ++ x ++ (replicate espacoDir
 mapaMatriz :: (a -> b) -> [[a]] -> [[b]]
 mapaMatriz f xss = map (map f) xss
 
+
 mostrarMatrizCom :: (a -> String) -> [[a]] -> String
 mostrarMatrizCom f = unlines . adicionaBorda . map concat . mapaMatriz f . transpose
 
 
 adicionaBorda :: [String] -> [String]
-adicionaBorda xs = [bordaHorizontal w]
+adicionaBorda xs = [numHorizontal]
+               ++ [bordaHorizontal w]
                ++ map bordaVertical xs
                ++ [(bordaHorizontal w)]
     where w                  = length (xs !! 0)
           h                  = length xs
-          bordaHorizontal w = "+" ++ (replicate w '-') ++ "+"
-          bordaVertical xs  = "|" ++ xs ++ "|"
+          numHorizontal      = "  0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19"
+          bordaHorizontal w  = "+" ++ (replicate w '-') ++ "+"
+          bordaVertical xs   = "|" ++ xs ++ "|"
+
 
 trocarIndiceMatriz :: Coordenada -> [[a]] -> a -> [[a]]
 trocarIndiceMatriz (x, y) m e = substituirIndice x m $ substituirIndice y (m !! x) e
@@ -146,6 +151,7 @@ substituirIndice index xs x = take index xs ++ ( x : (drop (index+1) xs))
 
 fazMatriz :: Int -> Int -> a -> [[a]]
 fazMatriz w h e = replicate w $ replicate h e
+
 
 noLimite :: Int -> Int -> Coordenada -> Bool
 noLimite w h (x, y)
