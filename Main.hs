@@ -14,8 +14,11 @@ altura = 20
 
 main :: IO ()
 main = do
+  putStrLn "--------------------------------------------------------------"
+  putStrLn "--            --> Bem vindo ao Campo Minado <--             --"
+  putStrLn "--------------------------------------------------------------\n"
   g        <- getStdGen
-  campo <- return $ fazMatriz largura altura Fechado -- nothing is campo
+  campo <- return $ fazMatriz largura altura Fechado
   minas    <- return $ gerarJogo largura altura (largura * altura `div` 10) g
   jogar campo minas >>= mostrarMinas
 
@@ -23,7 +26,7 @@ main = do
 jogar :: Campo -> Minas -> IO Campo
 jogar e w = do
   mostrarMinas e
-  putStrLn "Escolha uma coordenada (x,y):" 
+  putStrLn "Escolha uma coordenada (x y):" 
   jogada <- getLine
   newC <- return $ analisar w (parseInput jogada) e
   case bombaVisivel newC of
@@ -80,10 +83,10 @@ gerarCoordenadas w h n g = zip xs ys
 
 
 gerarMinas :: Int -> Int -> Int -> [Coordenada] -> Minas
-gerarMinas w h n bombas = foldr placeBomba mina bombas
+gerarMinas w h n bombas = foldr localBomba mina bombas
     where
-      mina             = fazMatriz w h (Peso 0) -- Initial mina has no bombas
-      placeBomba p mina = trocarIndiceMatriz p mina Bomba
+      mina              = fazMatriz w h (Peso 0) -- Initial mina has no bombas
+      localBomba p mina = trocarIndiceMatriz p mina Bomba
 
 
 geraMapaPeso :: Int -> Int -> [Coordenada] -> MapaPeso
@@ -106,15 +109,15 @@ mostrarMinas ::  Minas -> IO ()
 mostrarMinas w = putStrLn $ mostrarMatrizCom mostrarPonto w
 
 mostrarPonto :: Estado Int -> String
-mostrarPonto Bomba       = mostrarCentralizado espaco "*"
-mostrarPonto Fechado = mostrarCentralizado espaco "#"
+mostrarPonto Bomba      = mostrarCentralizado espaco "*"
+mostrarPonto Fechado    = mostrarCentralizado espaco "#"
 mostrarPonto (Peso 0)   = mostrarCentralizado espaco " "
 mostrarPonto (Peso n)   = mostrarCentralizado espaco (show n)
 
 mostrarCentralizado :: Int -> String -> String
 mostrarCentralizado w x = (replicate espacoEsq ' ') ++ x ++ (replicate espacoDir ' ')
     where espacoEsq  =  w `div` 2
-          espacoDir =  w - espacoEsq - (length x)
+          espacoDir  =  w - espacoEsq - (length x)
 
 
 mapaMatriz :: (a -> b) -> [[a]] -> [[b]]
