@@ -14,7 +14,7 @@ altura = 20
 
 main :: IO ()
 main = do
-  putStrLn "--------------------------------------------------------------"
+  putStrLn "\n--------------------------------------------------------------"
   putStrLn "--            --> Bem vindo ao Campo Minado <--             --"
   putStrLn "--------------------------------------------------------------\n"
   g        <- getStdGen
@@ -146,7 +146,7 @@ trocarIndiceMatriz (x, y) m e = substituirIndice x m $ substituirIndice y (m !! 
 
 
 substituirIndice :: Int -> [a] -> a -> [a]
-substituirIndice index xs x = take index xs ++ ( x : (drop (index+1) xs))
+substituirIndice indice xs x = take indice xs ++ ( x : (drop (indice+1) xs))
 
 
 fazMatriz :: Int -> Int -> a -> [[a]]
