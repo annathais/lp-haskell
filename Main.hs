@@ -1,11 +1,10 @@
 module Main where
 
 import Control.Monad
-import System.Random
-import Data.List
-import System.IO
-import Debug.Trace
-import Tipos
+import System.Random    -- Esta biblioteca lida com a tarefa comum de geração de números pseudo-aleatórios
+import Data.List        -- Esta biblioteca permite dazer operações em listas.
+import System.IO        -- Esta biblioteca padrão de IO.
+import Tipos            -- Módulo onde está definido os tipos utilizados
 
 
 espaco   = 3
