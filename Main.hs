@@ -118,48 +118,49 @@ mostrarPonto Fechado    = mostrarCentralizado espaco "#"
 mostrarPonto (Peso 0)   = mostrarCentralizado espaco " "
 mostrarPonto (Peso n)   = mostrarCentralizado espaco (show n)
 
-mostrarCentralizado :: Int -> String -> String
-mostrarCentralizado w x = (replicate espacoEsq ' ') ++ x ++ (replicate espacoDir ' ')
-    where espacoEsq  =  w `div` 2
-          espacoDir  =  w - espacoEsq - (length x)
+mostrarCentralizado :: Int -> String -> String                                          -- Apresenta valor na matriz centralizado, separado pelo espaço definido no início
+mostrarCentralizado l x = (replicate espacoEsq ' ') ++ x ++ (replicate espacoDir ' ')   -- Gera uam String com o espaço a esquerda, o conteúdo e o espaço a direita
+    where espacoEsq  =  l `div` 2                                                       -- Espaço a esquerda é o número de vezes o espaço pode ser dividido por 2
+          espacoDir  =  l - espacoEsq - (length x)                                      -- Espaço a direira é o espaço menos o espaço a esquerda menos o tamanho do conteudo da celula
 
 
-mapaMatriz :: (a -> b) -> [[a]] -> [[b]]
+mapaMatriz :: (a -> b) -> [[a]] -> [[b]]      -- Mapeia uma função sobre uma lista de listas
 mapaMatriz f xss = map (map f) xss
 
 
-mostrarMatrizCom :: (a -> String) -> [[a]] -> String
-mostrarMatrizCom f = unlines . adicionaBorda . map concat . mapaMatriz f . transpose
+mostrarMatrizCom :: (a -> String) -> [[a]] -> String    -- Cria uma string a partir de uma matriz de strings, insere novos caracteres de linha entre as strings originais
+mostrarMatrizCom f = unlines . adicionaBorda . map concat . mapaMatriz f . transpose 
 
 
 adicionaBorda :: [String] -> [String]
-adicionaBorda xs = [numHorizontal]
-               ++ [bordaHorizontal w]
-               ++ map bordaVertical xs
-               ++ [(bordaHorizontal w)]
-    where w                  = length (xs !! 0)
-          h                  = length xs
+adicionaBorda xs = [numHorizontal]              -- Essa função recebe a String xs e retorna uma sString maior composta pelos números da borda superior,
+               ++ [bordaHorizontal l]           -- linha da borda superior, linha da borda lateral e a matriz, seja esta #, ou os pesos (1,2,3), ou ainda
+               ++ map bordaVertical xs          -- a bomba e termina preenchedo a linha da outra lateral e a inferior
+               ++ [(bordaHorizontal l)]
+    where l                  = length (xs !! 0) -- A largura é do tamanho do comprimento da posição 0 de xs 
+          a                  = length xs        -- A altura é do tamanho do comprimento de xs
           numHorizontal      = "  0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19"
-          bordaHorizontal w  = " " ++ (replicate w '-') ++ " "
+          bordaHorizontal l  = " " ++ (replicate l '-') ++ " "
           bordaVertical xs   = "|" ++ xs ++ "|"
 
 
-trocarIndiceMatriz :: Coordenada -> [[a]] -> a -> [[a]]
+trocarIndiceMatriz :: Coordenada -> [[a]] -> a -> [[a]]         -- Substitui o celula da matriz indica pelas coordenadas pelo valor correspondente
 trocarIndiceMatriz (x, y) m e = substituirIndice x m $ substituirIndice y (m !! x) e
 
 
-substituirIndice :: Int -> [a] -> a -> [a]
-substituirIndice indice xs x = take indice xs ++ ( x : (drop (indice+1) xs))
+substituirIndice :: Int -> [a] -> a -> [a]                      -- Substitui um elemento em um índice em uma lista por outro elemento
+substituirIndice indice xs x = take indice xs ++ ( x : (drop (indice+1) xs))  
 
 
-fazMatriz :: Int -> Int -> a -> [[a]]
-fazMatriz w h e = replicate w $ replicate h e
+
+fazMatriz :: Int -> Int -> a -> [[a]]           -- Cria um preenchimento de matriz com um determinado elemento
+fazMatriz l a e = replicate l $ replicate a e   -- Cria uma lista de comprimento fornecida pelo primeiro argumento e os itens com valor do segundo argumento
 
 
-noLimite :: Int -> Int -> Coordenada -> Bool
-noLimite w h (x, y)
+noLimite :: Int -> Int -> Coordenada -> Bool -- Verifica se a coordenada digitada está dentro do campo
+noLimite l a (x, y)
     | x < 0     = False
-    | x >= w    = False
+    | x >= l    = False
     | y < 0     = False
-    | y >= h    = False
+    | y >= a    = False
     | otherwise = True
