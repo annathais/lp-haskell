@@ -1,6 +1,7 @@
 {-
   Universidade de Brasilia
   Curso Engenharia de Computação
+  Disciplina Ligugem de Programação   Turma C
   Equipe: Anna Thais Costa Lopes            18/0112279
           Aécio Fernandes Galiza Magalhães  15/0115121
 -}
@@ -33,93 +34,94 @@ main = do
 jogar :: Campo -> Minas -> IO Campo
 jogar e w = do
   mostrarMinas e                                            -- Chama a função mostrarMinas passado o parêmtro e (que é o campo mandado na função main)
-  putStrLn "Escolha uma coordenada (x y):" 
-  jogada <- getLine
-  novoC  <- return $ analisar w (analisaEntrada jogada) e
-  putStrLn $ case bombaVisivel novoC of
-    True -> "\nVoce perdeu!"
-    False -> "\nContinue"
-  case bombaVisivel novoC of
-      True  -> return novoC
-      False -> jogar novoC w
+  putStrLn "Escolha uma coordenada (x y):"
+  jogada <- getLine                                         -- Captura a jogada
+  novoC  <- return $ analisar w (analisaEntrada jogada) e   -- Converte a string de entrada "jogada" em um par de coordenada
+  putStrLn $ case bombaVisivel novoC of                     -- Caso tenha uma bomba visivel apos a jogadada,
+    True -> "\nVoce perdeu!"                                -- a mensagem diz que voce perde.
+    False -> "\nContinue"                                   -- Caso contrario, continua
+  case bombaVisivel novoC of                                -- Mesmo caso de cima, mas com a atualizacao do tabuleiro
+      True  -> return novoC                                 -- Caso perca, imprime o tabuleiro atualizado atual com a bomba visivel
+      False -> jogar novoC w                                -- Caso contrario, retorna para a funcao de jogar
 
 
-analisar :: Minas -> Coordenada -> Campo -> Campo
-analisar w p@(x, y) e = case e !! x !! y of
-                            Fechado -> atualizarCampo w p e
-                            _       -> e
+analisar :: Minas -> Coordenada -> Campo -> Campo           -- Analisa se a jogada foi em uma coordenada ja aberta
+analisar w p@(x, y) e = case e !! x !! y of                 -- Caso a coordenada ainda esteja fechada,
+                            Fechado -> atualizarCampo w p e -- chama a funcao para atualizar o campo, abrindo-a
+                            _       -> e                    -- caso ja esteja aberta, retorna o proprio campo
 
-atualizarCampo :: Minas -> Coordenada -> Campo -> Campo
+atualizarCampo :: Minas -> Coordenada -> Campo -> Campo     -- Atualiza o campo impresso
 atualizarCampo w p@(x, y) e =
     case estado of
-      Peso 0 -> foldr (analisar w) novoCampo $ emTorno largura altura p
-      _      -> novoCampo
+      Peso 0 -> foldr (analisar w) novoCampo $ emTorno largura altura p   -- Caso seja uma coordenada de peso 0 (sem bombas adjacentes), analisa os adjacentes
+      _      -> novoCampo                                   -- ao achar algum que nao tenha peso 0, imprime novo campo
     where
       estado    = (w !! x !! y)
-      novoCampo = trocarIndiceMatriz p e estado
+      novoCampo = trocarIndiceMatriz p e estado             -- onde o novo campo possui um caracter referente ao peso != 0
 
 
-bombaVisivel :: Campo -> Bool
-bombaVisivel [] = False
+bombaVisivel :: Campo -> Bool                               -- verifica se tem bomba visivel apos atualizar o campo
+bombaVisivel [] = False                                     -- campo vazio = falso, nenhuma bomba viivel
 bombaVisivel (xs:xss)
-              | temBomba xs     = True
-              | otherwise       = bombaVisivel xss
+              | temBomba xs     = True                      -- Se o estado do campo for Bomba, aparece uma bomba
+              | otherwise       = bombaVisivel xss          -- aplica recursao pro restante da lista novamente
               where temBomba xs = not $ all naoTemBomba xs
-                    naoTemBomba Bomba   = False
-                    naoTemBomba _       = True
-                                      
+                    naoTemBomba Bomba   = False             -- Se o estado do campo for Bomba, retora "falso" para "nao tem bomba", o que retorna "verdedeiro" para "tem bomba"
+                    naoTemBomba _       = True              -- em outro caso, nao tem bomba mesmo.
+
 
 analisaEntrada :: String -> Coordenada
-analisaEntrada line = listToPair $ map read $ words line
-    where listToPair (x:y:_) = (y, x)
+analisaEntrada line = listToPair $ map read $ words line        -- Converte a string de entrada "line"
+    where listToPair (x:y:_) = (y, x)                           -- Em uma lista com um par, que será a coordenada
 
 
 gerarJogo :: RandomGen g => Int -> Int -> Int -> g -> Minas
-gerarJogo w h n g = [zipWith combinar ms cs | (ms, cs) <- zip bombaMap mapaPeso]
+gerarJogo w h n g = [zipWith combinar ms cs | (ms, cs) <- zip bombaMap mapaPeso] -- Concatena as posicoes das bombas com as posicoes dos pesos, fechando o campo por completo
                    where
-                     bombas   = nub $ gerarCoordenadas w h n g
-                     mapaPeso = geraMapaPeso w h bombas
-                     bombaMap = gerarMinas w h n bombas
+                     bombas   = nub $ gerarCoordenadas w h n g  -- remove coordenadas duplicadas
+                     mapaPeso = geraMapaPeso w h bombas         -- gera o mapa com os pesos
+                     bombaMap = gerarMinas w h n bombas         -- gera o mapa só com as minas
                      combinar :: (Estado a) -> a -> Estado a
-                     combinar Bomba _    = Bomba
-                     combinar Fechado _  = Fechado
-                     combinar (Peso _) x = Peso x
-                                            
+                     combinar Bomba _    = Bomba                -- coloca o estado "bomba" em todos que possuirem esse atributo, independente do nome
+                     combinar Fechado _  = Fechado              -- faz o mesmo com "fechado"
+                     combinar (Peso _) x = Peso x               -- faz o mesmo com peso
+
 
 gerarCoordenadas :: RandomGen g => Int -> Int -> Int -> g -> [Coordenada]
-gerarCoordenadas w h n g = zip xs ys
+gerarCoordenadas w h n g = zip xs ys                        -- concatena os x's e y's na forma de coordenada
     where
-      xs = take n (randomRs (0, w-1) g)
-      ys = drop n $ take (n*2) $ randomRs (0, h-1) g
+      xs = take n (randomRs (0, w-1) g)                     -- pega 40 x's aleatorios entre 0 e tamanho do eixo X
+      ys = drop n $ take (n*2) $ randomRs (0, h-1) g        -- pega 2 vezes o tamanho (40) e dropa metade
 
 
 gerarMinas :: Int -> Int -> Int -> [Coordenada] -> Minas
-gerarMinas w h n bombas = foldr localBomba mina bombas
+gerarMinas w h n bombas = foldr localBomba mina bombas   -- aplica "localbomba" colocando o estado da matriz "mina" onde for bomba efetivamente
     where
-      mina              = fazMatriz w h (Peso 0)
+      mina              = fazMatriz w h (Peso 0)          -- cria matriz com esses parametros
       localBomba p mina = trocarIndiceMatriz p mina Bomba
 
 
-geraMapaPeso :: Int -> Int -> [Coordenada] -> MapaPeso
-geraMapaPeso w h bombas = foldr succCoordenada mapaPeso emTornoCoordenadas
+geraMapaPeso :: Int -> Int -> [Coordenada] -> MapaPeso                      -- gera o mapa apenas com os pesos
+geraMapaPeso w h bombas = foldr succCoordenada mapaPeso emTornoCoordenadas  -- aplica a operacao "succCoordenada" por mapaPeso nas coordenadas adjacentes
     where
-      emTornoCoordenadas               = concat $ map (emTorno w h) bombas
-      mapaPeso                         = replicate w $ replicate h 0
-      succCoordenada p@(x, y) mapaPeso = trocarIndiceMatriz p mapaPeso
+      emTornoCoordenadas               = concat $ map (emTorno w h) bombas  -- concatena as listas com as bombas e os pesos aplicados em torno
+      mapaPeso                         = replicate w $ replicate h 0        -- replica "w" vezes a replica de "h" vezes 0 (pesos iniciais)
+      succCoordenada p@(x, y) mapaPeso = trocarIndiceMatriz p mapaPeso      -- funcao "succCoordenada"
                                    $ succ (mapaPeso !! x !! y)
                                      
 
-emTorno :: Int -> Int -> Coordenada -> [Coordenada]
+
+emTorno :: Int -> Int -> Coordenada -> [Coordenada]               -- mapeia coordenadas em torno
 emTorno w h (x, y) =
     filter (noLimite w h) [(x-1, y+1), (x, y+1), (x+1, y+1),
                            (x-1, y),             (x+1, y),
                            (x-1, y-1), (x, y-1), (x+1, y-1)]
 
 
-mostrarMinas ::  Minas -> IO ()
+mostrarMinas ::  Minas -> IO ()                                       -- funcao de imprimir o campo
 mostrarMinas w = putStrLn $ mostrarMatrizCom mostrarPonto w
 
-mostrarPonto :: Estado Int -> String
+mostrarPonto :: Estado Int -> String                                  -- funcao que imprime a situacao atual da coordenada
 mostrarPonto Bomba      = mostrarCentralizado espaco "*"
 mostrarPonto Fechado    = mostrarCentralizado espaco "#"
 mostrarPonto (Peso 0)   = mostrarCentralizado espaco " "
