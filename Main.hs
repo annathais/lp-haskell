@@ -1,3 +1,10 @@
+{-
+  Universidade de Brasilia
+  Curso Engenharia de Computação
+  Equipe: Anna Thais Costa Lopes            18/0112279
+          Aécio Fernandes Galiza Magalhães  15/0115121
+-}
+
 module Main where
 
 import Control.Monad
