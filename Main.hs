@@ -17,18 +17,22 @@ main = do
   putStrLn "\n--------------------------------------------------------------"
   putStrLn "--            --> Bem vindo ao Campo Minado <--             --"
   putStrLn "--------------------------------------------------------------\n"
-  g        <- getStdGen
-  campo    <- return $ fazMatriz largura altura Fechado
-  minas    <- return $ gerarJogo largura altura (largura * altura `div` 10) g
-  jogar campo minas >>= mostrarMinas
+  g        <- getStdGen                                   -- Obtém o gerador global de números aleatórios.
+  campo    <- return $ fazMatriz largura altura Fechado   -- Chama a função fazMatriz e passa o parâmetro largura, altura e Fechado
+  minas    <- return $ gerarJogo largura altura (40) g    -- Chama a função gerarJogo e passa o parâmetro largura altura nº de bombas e os números aleatórios
+  jogar campo minas >>= mostrarMinas                      {- Chama a função jogar e passa o parâmetro campo e minas, >>= passa o resultado da expressão à esquerda 
+                                                             como argumento para a expressão à direita, de uma maneira que respeite o contexto do argumento e da função usada-}
 
 
 jogar :: Campo -> Minas -> IO Campo
 jogar e w = do
-  mostrarMinas e
+  mostrarMinas e                                            -- Chama a função mostrarMinas passado o parêmtro e (que é o campo mandado na função main)
   putStrLn "Escolha uma coordenada (x y):" 
   jogada <- getLine
   novoC  <- return $ analisar w (analisaEntrada jogada) e
+  putStrLn $ case bombaVisivel novoC of
+    True -> "\nVoce perdeu!"
+    False -> "\nContinue"
   case bombaVisivel novoC of
       True  -> return novoC
       False -> jogar novoC w
@@ -137,7 +141,7 @@ adicionaBorda xs = [numHorizontal]
     where w                  = length (xs !! 0)
           h                  = length xs
           numHorizontal      = "  0  1  2  3  4  5  6  7  8  9  10 11 12 13 14 15 16 17 18 19"
-          bordaHorizontal w  = "+" ++ (replicate w '-') ++ "+"
+          bordaHorizontal w  = " " ++ (replicate w '-') ++ " "
           bordaVertical xs   = "|" ++ xs ++ "|"
 
 
